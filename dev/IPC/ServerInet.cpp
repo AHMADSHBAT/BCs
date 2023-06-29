@@ -1,6 +1,6 @@
-#include "transport_server.h"
+#include "ServerInet.h"
 
-Server_INET::Server_INET()
+Server_INET::Server_INET() : SocketBase(SocketType::TCP)
 {
     int opt = 1;
     this->m_clients = {0};
@@ -47,9 +47,8 @@ void Server_INET::Listen()
         printf("Error: Server_INET cannot listen to the socket. Error code: %d\n", errno);
         return;
     }
-
-    std::thread t(&Server_INET::Accept, this);
-    t.detach();
+    std::thread u(&Server_INET::Accept, this);
+    u.detach();
 }
 
 void Server_INET::Accept(Server_INET* server)
@@ -83,4 +82,19 @@ void Server_INET::Accept(Server_INET* server)
         server->onConnectionEvent(newClient);
         newClient->Listen();
     }
-}
+};
+
+
+
+
+
+
+
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+
+
+

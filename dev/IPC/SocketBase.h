@@ -13,6 +13,7 @@
 #include <string>
 #include <functional>
 #include <cerrno>
+#include <sys/un.h>
 
 #define FDR_UNUSED(expr){ (void)(expr); } 
 #define FDR_ON_ERROR std::function<void(int, std::string)> onError = [](int errorCode, std::string errorMessage){FDR_UNUSED(errorCode); FDR_UNUSED(errorMessage)}
@@ -26,10 +27,12 @@ class SocketBase
 public:
     enum SocketType
     {
-        TCP = SOCK_STREAM,
-        UDP = SOCK_DGRAM
+        TCP = 1,
+        UNIX = 2
     };
     sockaddr_in address;
+    sockaddr_un address_un;
+
 
     void Close() {
         shutdown(this->sock, SHUT_RDWR);
@@ -52,11 +55,20 @@ protected:
         return std::string(ip);
     }  
 
-    SocketBase(SocketType sockType = TCP, int socketId = -1)
+    SocketBase(SocketType sockType, int socketId = -1)
     {
-        if (socketId == -1)
+        if (socketId == -1 && sockType == TCP)
         {
             this->sock = socket(AF_INET, sockType, 0);
+            
+            if ( this->sock == -1 )
+            {
+                printf("Socket creating error.");
+            }
+        }
+        else if(socketId == -1 && sockType == UNIX)
+        {
+            this->sock = socket(AF_UNIX, SOCK_STREAM, 0);
             
             if ( this->sock == -1 )
             {

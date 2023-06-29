@@ -1,5 +1,5 @@
-#include "dev/IPC/transport_server.h"
-#include "dev/IPC/transport_client.h"
+#include "dev/IPC/ServerUnix.h"
+#include "dev/IPC/ClientUnix.h"
 #include <iostream>
 
 using namespace std;
@@ -7,7 +7,7 @@ using namespace std;
 int main()
 {
     // Initialize socket.
-    Client_INET socket;
+    Client_UNIX socket;
 /* Call traces:--------|
                        |                    if (socketId == -1)
                        |                         {
@@ -35,10 +35,10 @@ int main()
     };
 
     /* Note: The following func tirgger: separate thread for receiveing msgs from the server & */
-    socket.Connect("localhost", 8888, [&] {
+    socket.Connect("./sock", [&] {
         cout << "Connected to the server successfully." << endl;
 /*  Call Traces:
-                        void Client_INET::Connect(const char* host, uint16_t port, std::function<void()> onConnected)
+                        void Client_UNIX::Connect(const char* host, uint16_t port, std::function<void()> onConnected)
                         {
                             int status = connect(this->sock, (const sockaddr*)&this->address, sizeof(sockaddr_in));
                             this->SetTimeout(0);
@@ -46,7 +46,7 @@ int main()
                             onConnected();
 
                             this->Listen(); ------>Call Traces:
-                                                    std::thread t(&Client_INET::Receive, this); -------->Call Traces:
+                                                    std::thread t(&Client_UNIX::Receive, this); -------->Call Traces:
                                                     t.detach();                                                  while ((messageLength = recv(client->sock, tempBuffer, BUFFER_SIZE, 0)) > 0)
                                                                                                                 {
                                                                                                                     tempBuffer[messageLength] = '\0';

@@ -1,5 +1,5 @@
-#include "dev/IPC/transport_server.h"
-#include "dev/IPC/transport_client.h"
+#include "dev/IPC/ServerUnix.h"
+#include "dev/IPC/ServerUnix.h"
 #include <iostream>
 
 using namespace std;
@@ -7,16 +7,16 @@ using namespace std;
 int main()
 {
     // Initialize server socket..
-    Server_INET Server_INET; /*Call Traces: this->sock = socket(AF_INET, sockType, 0);*/
+    Server_UNIX Server_UNIX; /*Call Traces: this->sock = socket(AF_INET, sockType, 0);*/
 
     //capturing the client instance from lambda func
     /* NOTE: by this mechanism, the framework gives the user space to alter the behavior/structure of the logic
        by using lambda funcs*/
-    Client_INET gClient;
+    Client_UNIX gClient;
     /* Injecting our lambda funcs and assosiat it to connection event
        Note: all the lambda funcs inside onConnectionEvent func are to inject
        a custom code into the client instance*/
-    Server_INET.onConnectionEvent = [&gClient](Client_INET *newClient) {
+    Server_UNIX.onConnectionEvent = [&gClient](Client_UNIX *newClient) {
         cout << "New client: [";
         cout << newClient->remoteAddress() << ":" << newClient->remotePort() << "]" << endl;
 
@@ -35,12 +35,12 @@ int main()
 
 
     // Bind the server to a port.
-    Server_INET.Bind(8888);
+    Server_UNIX.Bind("./sock");
 
     // Start Listening the server.
-    Server_INET.Listen();
+    Server_UNIX.Listen();
     /* Call traces:
-                    std::thread t(&Server_INET::Accept, this); Call traces: ------------> void Server_INET::Accept(Server_INET* server)
+                    std::thread t(&Server_UNIX::Accept, this); Call traces: ------------> void Server_UNIX::Accept(Server_UNIX* server)
                                                                                         {
                                                                                             sockaddr_in newSocketInfo;
                                                                                             socklen_t newSocketInfoLength = sizeof(newSocketInfo);
@@ -59,7 +59,7 @@ int main()
                                                                                                     return;
                                                                                                 }
 
-                                                                                                Client_INET* newClient = new Client_INET(newFd);
+                                                                                                Client_UNIX* newClient = new Client_UNIX(newFd);
                                                                                                 newClient->deleteAfterClosed = true;
                                                                                                 newClient->SetAddress(newSocketInfo);
                                                                                                 server->onConnectionEvent(newClient);
@@ -86,7 +86,7 @@ int main()
     }
 
     // Close the server before exiting the program.
-    Server_INET.Close();
+    Server_UNIX.Close();
 
     return 0;
 }
